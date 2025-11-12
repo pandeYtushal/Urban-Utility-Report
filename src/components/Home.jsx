@@ -16,13 +16,14 @@ export default function Home() {
     <div
       onClick={() => handleReportClick(type)}
       className="backdrop-blur-md bg-[rgba(19,19,19,0.5)] border border-white/10 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer group 
-                 w-64 h-88 sm:w-72 sm:h-92 md:w-80 md:h-96 lg:w-96 lg:h-104 flex flex-col" >
+                 w-64 h-88 sm:w-72 sm:h-92 md:w-80 md:h-96 lg:w-96 lg:h-104 flex flex-col"
+    >
       {/* Image Section */}
-      <div className="relative w-full h-48 sm:h-52 md:h-56 lg:h-64 overflow-hidden">  
+      <div className="relative w-full h-48 sm:h-52 md:h-56 lg:h-64 overflow-hidden">
         <img
           src={img}
           alt={title}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"  
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
         <div
           className="absolute inset-0 transition-all group-hover:opacity-80"
@@ -47,46 +48,56 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-[#131313]/95 flex flex-col justify-center items-center text-center px-4 py-12">
-      {/* Heading */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
-        Urban Utility Reporter
-      </h1>
-      <p className="text-gray-300 mb-12 text-center max-w-lg text-sm sm:text-base md:text-lg">
-        Report issues like sewage leaks, garbage accumulation, and streetlight
-        faults directly to your local authorities.
-      </p>
+    <div
+      className="min-h-screen flex flex-col justify-center items-center text-center px-4 py-12 bg-cover bg-center bg-no-repeat relative"
+      style={{
+        backgroundImage: `url('/hero.png')`,
+      }}
+    >
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-[rgba(19,19,19,0.85)] backdrop-blur-sm z-0"></div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12">
-        <Card
-          img={sewageImg}
-          icon={Droplets}
-          title="Sewage Issue"
-          desc="Report blocked or leaking drains"
-          type="Sewage"
-        />
-        <Card
-          img={garbageImg}
-          icon={Trash2}
-          title="Garbage Issue"
-          desc="Report uncollected garbage or dumps"
-          type="Garbage"
-        />
-        <Card
-          img={streetlightImg}
-          icon={Lightbulb}
-          title="Streetlight Fault"
-          desc="Report broken or non-working lights"
-          type="Streetlight"
-        />
-        <Card
-          img={otherImg}
-          icon={AlertTriangle}
-          title="Other Faults"
-          desc="Report other civic issues"
-          type="Other"
-        />
+      <div className="relative z-10">
+        {/* Heading */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+          Urban Utility Reporter
+        </h1>
+        <p className="text-gray-300 mb-12 text-center max-w-lg text-sm sm:text-base md:text-lg">
+          Report issues like sewage leaks, garbage accumulation, and streetlight
+          faults directly to your local authorities.
+        </p>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12">
+          <Card
+            img={sewageImg}
+            icon={Droplets}
+            title="Sewage Issue"
+            desc="Report blocked or leaking drains"
+            type="Sewage"
+          />
+          <Card
+            img={garbageImg}
+            icon={Trash2}
+            title="Garbage Issue"
+            desc="Report uncollected garbage or dumps"
+            type="Garbage"
+          />
+          <Card
+            img={streetlightImg}
+            icon={Lightbulb}
+            title="Streetlight Fault"
+            desc="Report broken or non-working lights"
+            type="Streetlight"
+          />
+          <Card
+            img={otherImg}
+            icon={AlertTriangle}
+            title="Other Faults"
+            desc="Report other civic issues"
+            type="Other"
+          />
+        </div>
       </div>
     </div>
   );

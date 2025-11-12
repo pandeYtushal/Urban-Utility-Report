@@ -1,17 +1,23 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { ArrowLeft, MapPin } from "lucide-react";
 
 export default function ReportForm() {
+  const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const issueType = params.get("issue") || "General";
 
-  // State for location
   const [userLocation, setUserLocation] = useState("");
   const [coords, setCoords] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    photo: null,
+  });
 
-  // Handle get current location
+  // 🗺️ Get User Location
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
@@ -25,17 +31,12 @@ export default function ReportForm() {
         const { latitude, longitude } = position.coords;
         setCoords({ lat: latitude, lng: longitude });
 
-        // Try reverse geocoding to get address (using OpenStreetMap API)
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`
           );
           const data = await response.json();
-          if (data.display_name) {
-            setUserLocation(data.display_name);
-          } else {
-            setUserLocation(`${latitude}, ${longitude}`);
-          }
+          setUserLocation(data.display_name || `${latitude}, ${longitude}`);
         } catch (error) {
           setUserLocation(`${latitude}, ${longitude}`);
         }
@@ -49,56 +50,95 @@ export default function ReportForm() {
     );
   };
 
+  // 🧾 Handle Form Submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newReport = {
+      id: Date.now(),
+      name: formData.name,
+      issueType,
+      location: userLocation,
+      description: formData.description,
+      coords,
+      photo: formData.photo ? URL.createObjectURL(formData.photo) : null,
+      status: "Pending",
+      date: new Date().toLocaleString(),
+    };
+
+    // Save report to localStorage
+    const existingReports =
+      JSON.parse(localStorage.getItem("reports")) || [];
+    existingReports.push(newReport);
+    localStorage.setItem("reports", JSON.stringify(existingReports));
+
+    alert("✅ Report submitted successfully!");
+    navigate("/reports");
+  };
+
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 md:px-10 lg:px-20 py-10 
-                    bg-[rgba(19,19,19,0.9)] backdrop-blur-md bg-cover bg-center">
+    <div
+      className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-cover bg-center bg-no-repeat relative"
+      style={{ backgroundImage: `url('/hero.png')` }}
+    >
+      <div className="absolute inset-0 bg-[rgba(19,19,19,0.9)] backdrop-blur-md"></div>
+
       {/* Form Container */}
-      <div className="bg-white/95 border border-gray-200 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 
-                      w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl transition-all duration-500">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2 text-center">
-          Report {issueType} Issue
-        </h1>
-        <p className="text-gray-600 mb-8 text-center text-sm sm:text-base md:text-lg">
-          Please describe the {issueType.toLowerCase()} problem and attach images or your current location if possible.
+      <div className="relative bg-white/95 border border-gray-200 rounded-2xl shadow-2xl p-8 w-full max-w-lg text-gray-800 z-10">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-teal-600 transition"
+          >
+            <ArrowLeft size={20} /> Back
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Report {issueType} Issue
+          </h1>
+        </div>
+
+        <p className="text-gray-600 mb-6 text-center text-sm">
+          Describe the {issueType.toLowerCase()} issue and attach your location or photo.
         </p>
 
-        <form className="space-y-6">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1 text-sm sm:text-base">
-              Your Name
-            </label>
+            <label className="block text-gray-700 font-medium mb-1">Your Name</label>
             <input
               type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Enter your name"
-              className="w-full border border-gray-300 focus:border-teal-500 rounded-md p-2 sm:p-3 
-                         text-sm sm:text-base focus:ring focus:ring-teal-100 outline-none"
+              className="w-full border border-gray-300 focus:border-teal-500 rounded-md p-2 focus:ring focus:ring-teal-100 outline-none"
               required
             />
           </div>
 
-          {/* Location + Button */}
+          {/* Location */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1 text-sm sm:text-base">
+            <label className="block text-gray-700 font-medium mb-1">
               Location
             </label>
-            <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+            <div className="flex gap-2 flex-col sm:flex-row">
               <input
                 type="text"
                 value={userLocation}
                 onChange={(e) => setUserLocation(e.target.value)}
                 placeholder="Enter location"
-                className="flex-1 border border-gray-300 focus:border-teal-500 rounded-md p-2 sm:p-3 
-                           text-sm sm:text-base focus:ring focus:ring-teal-100 outline-none"
+                className="flex-1 border border-gray-300 rounded-md p-2 focus:border-teal-500 focus:ring focus:ring-teal-100 outline-none"
                 required
               />
               <button
                 type="button"
                 onClick={handleGetLocation}
-                className="bg-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-teal-700 
-                           transition text-xs sm:text-sm font-medium"
+                className="flex items-center justify-center gap-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md transition text-sm font-medium"
               >
-                {loading ? "Locating..." : "📍 Use My Location"}
+                {loading ? "Locating..." : <><MapPin size={16}/> My Location</>}
               </button>
             </div>
 
@@ -108,11 +148,9 @@ export default function ReportForm() {
                 <iframe
                   title="map"
                   width="100%"
-                  height="180"
-                  className="sm:h-56 md:h-64 lg:h-72"
+                  height="200"
                   loading="lazy"
                   allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
                   src={`https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=15&output=embed`}
                 ></iframe>
               </div>
@@ -121,37 +159,43 @@ export default function ReportForm() {
 
           {/* Description */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1 text-sm sm:text-base">
+            <label className="block text-gray-700 font-medium mb-1">
               Description
             </label>
             <textarea
               rows="3"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Describe the issue..."
-              className="w-full border border-gray-300 focus:border-teal-500 rounded-md p-2 sm:p-3 
-                         text-sm sm:text-base focus:ring focus:ring-teal-100 outline-none"
+              className="w-full border border-gray-300 rounded-md p-2 focus:border-teal-500 focus:ring focus:ring-teal-100 outline-none"
               required
             />
           </div>
 
           {/* Photo Upload */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1 text-sm sm:text-base">
+            <label className="block text-gray-700 font-medium mb-1">
               Attach Photo
             </label>
             <input
               type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setFormData({ ...formData, photo: e.target.files[0] })
+              }
               className="w-full text-gray-600 border border-gray-300 rounded-md 
-                         file:mr-3 file:py-2 file:px-3 sm:file:px-4 sm:file:py-2 file:rounded-md 
-                         file:border-0 file:text-xs sm:file:text-sm file:font-semibold 
+                         file:mr-3 file:py-2 file:px-3 file:rounded-md 
+                         file:border-0 file:text-sm file:font-semibold 
                          file:bg-teal-600 file:text-white hover:file:bg-teal-700"
             />
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-teal-600 text-white py-2 sm:py-3 text-sm sm:text-base rounded-md 
-                       hover:bg-teal-700 transition-colors duration-300 font-semibold shadow-md"
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-md transition-colors font-semibold shadow-md"
           >
             Submit Report
           </button>
