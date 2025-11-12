@@ -1,92 +1,94 @@
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "../Firebase";
+import { MapPin } from "lucide-react";
+
 export default function ReportsList() {
-  // Later you can replace this dummy data with API or Firebase data
-  const reports = [
-    {
-      id: 1,
-      title: "Broken Streetlight",
-      desc: "Reported near Sector 17 Market, Chandigarh.",
-      image: "/streetlight.png",
-      type: "Streetlight Fault",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      title: "Garbage Overflow",
-      desc: "Uncollected garbage near Rose Garden road.",
-      image: "/garbage.png",
-      type: "Garbage Issue",
-      status: "Resolved",
-    },
-    {
-      id: 3,
-      title: "Sewage Leakage",
-      desc: "Water leakage near Sector 22 Police Station.",
-      image: "/sewage.png",
-      type: "Sewage Issue",
-      status: "In Progress",
-    },
-  ];
+  const [reports, setReports] = useState([]);
+
+  useEffect(() => {
+    const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reportData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setReports(reportData);
+    });
+    return unsubscribe;
+  }, []);
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat relative pt-24 px-6 flex flex-col items-center"
-      style={{
-        backgroundImage: `url('/hero.png')`, // 👈 reuse same background for consistency
-      }}
+      className="min-h-screen bg-cover bg-center bg-no-repeat relative flex flex-col items-center px-4 py-20"
+      style={{ backgroundImage: `url('/hero.png')` }}
     >
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-[rgba(19,19,19,0.9)] backdrop-blur-md z-0"></div>
 
-      {/* Content */}
       <div className="relative z-10 w-full max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl font-bold text-teal-400 mb-8 text-center drop-shadow-lg">
+        {/* Page Heading */}
+        <h2 className="text-3xl sm:text-4xl font-bold text-teal-400 mb-10 text-center drop-shadow-lg">
           Reported Issues 📋
         </h2>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="bg-white/90 border border-gray-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-            >
-              <img
-                src={report.image}
-                alt={report.title}
-                className="w-full h-48 object-contain bg-gray-50"
-              />
+        {/* No Reports Found */}
+        {reports.length === 0 ? (
+          <div className="text-center text-gray-400 text-lg mt-16">
+            🚫 No reports found. Be the first to report an issue!
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {reports.map((r) => (
+              <div
+                key={r.id}
+                className="bg-white/10 border border-white/10 rounded-2xl p-5 shadow-lg 
+                           hover:shadow-2xl transition-all backdrop-blur-md hover:-translate-y-1"
+              >
+                {/* Image */}
+                {r.photo && (
+                  <img
+                    src={r.photo}
+                    alt="Reported issue"
+                    className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700/50"
+                  />
+                )}
 
-              <div className="p-5 flex flex-col gap-2">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-                  {report.title}
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full ${
-                      report.status === "Resolved"
-                        ? "bg-green-100 text-green-700"
-                        : report.status === "In Progress"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {report.status}
-                  </span>
+                {/* Title */}
+                <h3 className="text-xl font-semibold text-teal-400 mb-1">
+                  {r.issueType || "General"} Issue
                 </h3>
 
-                <p className="text-sm text-gray-600">{report.desc}</p>
+                {/* Location */}
+                <p className="text-gray-300 text-sm flex items-center gap-1 mb-2">
+                  <MapPin size={14} className="text-teal-400" />
+                  {r.location || "Unknown location"}
+                </p>
 
-                <div className="mt-3 text-xs text-teal-600 font-medium uppercase tracking-wide">
-                  {report.type}
+                {/* Description */}
+                <p className="text-gray-400 text-sm line-clamp-3 mb-3">
+                  {r.description}
+                </p>
+
+                {/* Footer */}
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <span>
+                    {r.createdAt?.toDate?.().toLocaleString?.() || "Pending..."}
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-medium ${
+                      r.status === "Pending"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-green-500/20 text-green-400"
+                    }`}
+                  >
+                    {r.status || "Pending"}
+                  </span>
                 </div>
-
-                <button
-                  className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md text-sm transition"
-                  onClick={() => alert(`Viewing details for ${report.title}`)}
-                >
-                  View Details
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

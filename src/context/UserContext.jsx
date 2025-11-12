@@ -1,87 +1,75 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [users, setUsers] = useState([]);
+  // Load logged-in user from localStorage (if available)
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-  // 🧠 Load from localStorage
-  useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem("currentUser"));
-    const savedUsers = JSON.parse(localStorage.getItem("allUsers")) || [];
-    if (savedUser) setUser(savedUser);
-    setUsers(savedUsers);
-  }, []);
+  // Load all users from localStorage
+  const [users, setUsers] = useState(() => {
+    const savedUsers = localStorage.getItem("users");
+    return savedUsers ? JSON.parse(savedUsers) : [];
+  });
 
-  // 💾 Persist whenever data changes
+  // Sync user state with localStorage
   useEffect(() => {
-    localStorage.setItem("allUsers", JSON.stringify(users));
     if (user) {
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem("currentUser");
+      localStorage.removeItem("user");
     }
-  }, [users, user]);
+  }, [user]);
 
-  // 📝 Signup (create new user)
+  // Sync users list with localStorage
+  useEffect(() => {
+    localStorage.setItem("users", JSON.stringify(users));
+  }, [users]);
+
+  // Signup logic
   const signup = (name, email, password) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const userExists = users.some((u) => u.email === normalizedEmail);
-
-    if (userExists) {
-      return { success: false, message: "Email already registered!" };
+    const existingUser = users.find((u) => u.email === email);
+    if (existingUser) {
+      return { success: false, message: "⚠️ User already exists" };
     }
 
     const newUser = {
       name,
-      email: normalizedEmail,
+      email,
       password,
       photo: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
     };
 
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
+    setUsers([...users, newUser]);
     setUser(newUser);
-
     return { success: true };
   };
 
-  // 🔐 Login
+  // Login logic
   const login = (email, password) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const allUsers = JSON.parse(localStorage.getItem("allUsers")) || [];
-
-    const existingUser = allUsers.find(
-      (u) => u.email === normalizedEmail && u.password === password
+    const foundUser = users.find(
+      (u) => u.email === email && u.password === password
     );
 
-    if (existingUser) {
-      setUser(existingUser);
-      localStorage.setItem("currentUser", JSON.stringify(existingUser));
-      return { success: true };
-    } else {
-      return { success: false, message: "Invalid email or password!" };
+    if (!foundUser) {
+      return { success: false, message: "❌ Invalid email or password" };
     }
+
+    setUser(foundUser);
+    return { success: true };
   };
 
-  // 🚪 Logout
+  // Logout logic
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem("user");
   };
 
   return (
-    <UserContext.Provider
-      value={{
-        user,
-        users,
-        setUser,
-        signup,
-        login,
-        logout,
-      }}
-    >
+    <UserContext.Provider value={{ user, setUser, signup, login, logout }}>
       {children}
     </UserContext.Provider>
   );

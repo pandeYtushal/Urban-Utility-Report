@@ -101,7 +101,7 @@ export default function Chatbot() {
               onClick={() => setIsOpen(false)}
               className="text-gray-400 hover:text-white transition"
             >
-              <X size={18} />
+              <X size={24} />
             </button>
           </div>
 

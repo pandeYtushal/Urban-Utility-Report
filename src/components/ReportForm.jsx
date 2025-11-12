@@ -1,6 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, CheckCircle2 } from "lucide-react";
+import { db } from "../Firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ReportForm() {
   const navigate = useNavigate();
@@ -11,6 +14,7 @@ export default function ReportForm() {
   const [userLocation, setUserLocation] = useState("");
   const [coords, setCoords] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -37,43 +41,46 @@ export default function ReportForm() {
           );
           const data = await response.json();
           setUserLocation(data.display_name || `${latitude}, ${longitude}`);
-        } catch (error) {
+        } catch {
           setUserLocation(`${latitude}, ${longitude}`);
         }
 
         setLoading(false);
       },
-      (error) => {
+      () => {
         alert("Unable to fetch location. Please allow location access.");
         setLoading(false);
       }
     );
   };
 
-  // 🧾 Handle Form Submit
-  const handleSubmit = (e) => {
+  // 🧾 Submit to Firestore
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newReport = {
-      id: Date.now(),
-      name: formData.name,
-      issueType,
-      location: userLocation,
-      description: formData.description,
-      coords,
-      photo: formData.photo ? URL.createObjectURL(formData.photo) : null,
-      status: "Pending",
-      date: new Date().toLocaleString(),
-    };
+    try {
+      await addDoc(collection(db, "reports"), {
+        name: formData.name,
+        issueType,
+        location: userLocation,
+        description: formData.description,
+        coords,
+        photo: formData.photo ? URL.createObjectURL(formData.photo) : null,
+        status: "Pending",
+        createdAt: serverTimestamp(),
+      });
 
-    // Save report to localStorage
-    const existingReports =
-      JSON.parse(localStorage.getItem("reports")) || [];
-    existingReports.push(newReport);
-    localStorage.setItem("reports", JSON.stringify(existingReports));
+      // ✅ Show success animation
+      setSubmitted(true);
 
-    alert("✅ Report submitted successfully!");
-    navigate("/reports");
+      // Redirect after animation
+      setTimeout(() => {
+        navigate("/reports");
+      }, 2000);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      alert("❌ Failed to submit report. Try again.");
+    }
   };
 
   return (
@@ -81,11 +88,12 @@ export default function ReportForm() {
       className="min-h-screen flex flex-col justify-center items-center px-4 py-10 bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: `url('/hero.png')` }}
     >
+      {/* Dark overlay */}
       <div className="absolute inset-0 bg-[rgba(19,19,19,0.9)] backdrop-blur-md"></div>
 
-      {/* Form Container */}
+      {/* Main form */}
       <div className="relative bg-white/95 border border-gray-200 rounded-2xl shadow-2xl p-8 w-full max-w-lg text-gray-800 z-10">
-        {/* Header with Back Button */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/")}
@@ -98,15 +106,12 @@ export default function ReportForm() {
           </h1>
         </div>
 
-        <p className="text-gray-600 mb-6 text-center text-sm">
-          Describe the {issueType.toLowerCase()} issue and attach your location or photo.
-        </p>
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Your Name</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Your Name
+            </label>
             <input
               type="text"
               value={formData.name}
@@ -201,6 +206,27 @@ export default function ReportForm() {
           </button>
         </form>
       </div>
+
+      {/* ✅ Success Animation Popup */}
+      <AnimatePresence>
+        {submitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 flex items-center justify-center z-999"
+          >
+            <div className="bg-white text-center rounded-2xl shadow-2xl p-8 flex flex-col items-center">
+              <CheckCircle2 className="text-green-500 w-16 h-16 mb-3 animate-pulse" />
+              <h2 className="text-2xl font-semibold text-gray-800">
+                Report Submitted!
+              </h2>
+              <p className="text-gray-500 mt-1">Redirecting to your reports...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
