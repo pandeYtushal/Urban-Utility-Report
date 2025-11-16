@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
