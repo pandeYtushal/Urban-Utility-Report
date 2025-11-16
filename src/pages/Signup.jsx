@@ -12,7 +12,6 @@ export default function Signup() {
     e.preventDefault();
     const res = signup(form.name, form.email, form.password);
     if (res.success) {
-      alert("✅ Account created successfully!");
       navigate("/");
     } else {
       setError(res.message);

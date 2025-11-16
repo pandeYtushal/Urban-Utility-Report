@@ -12,7 +12,6 @@ export default function Login() {
     e.preventDefault();
     const res = login(form.email, form.password);
     if (res.success) {
-      alert("✅ Login successful!");
       navigate("/");
     } else {
       setError(res.message);
