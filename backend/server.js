@@ -31,7 +31,7 @@ app.post("/api/chat", async (req, res) => {
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant", // works in 2025
+        model: "llama-3.1-8b-instant", 
 
         messages: [
           {
@@ -56,11 +56,9 @@ RULES:
 - ALWAYS include "#FINAL_REPORT" before the JSON.
 - DO NOT add any text before or after the JSON.
 - DO NOT format with Markdown or backticks.
-- DO NOT explain the JSON.
-            `,
+- DO NOT explain the JSON.`,
           },
-
-          ...messages.map((m) => ({
+            ...messages.map((m) => ({
             role: m.role,
             content: m.text,
           })),
@@ -72,7 +70,7 @@ RULES:
 
     console.log("🧠 Groq raw reply:", JSON.stringify(data, null, 2));
 
-    // Return the AI message to the frontend
+    
     if (data?.choices?.length > 0 && data.choices[0]?.message?.content) {
       return res.json({ reply: data.choices[0].message.content });
     } else {
