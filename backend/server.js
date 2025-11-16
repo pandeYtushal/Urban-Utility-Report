@@ -3,11 +3,14 @@ import dotenv from "dotenv";
 import cors from "cors";
 import fetch from "node-fetch";
 
+
 dotenv.config();
+console.log("🔑 Loaded GROQ_API_KEY:", process.env.GROQ_API_KEY);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -30,7 +33,8 @@ app.post("/api/chat", async (req, res) => {
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192", // ✅ use stable Groq model
+      model: "llama-3.1-8b-instant",
+
         messages: [
           {
             role: "system",

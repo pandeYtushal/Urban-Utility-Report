@@ -30,11 +30,11 @@ export default function Home() {
           className="absolute inset-0 transition-all group-hover:opacity-90"
           style={{ backgroundColor: color, opacity: 0.4 }}
         ></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent"></div>
       </div>
 
       {/* Text Section */}
-      <div className="flex flex-col flex-1 items-center justify-center p-6 sm:p-7 space-y-3 bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-lg">
+      <div className="flex flex-col flex-1 items-center justify-center p-6 sm:p-7 space-y-3 bg-linear-to-b from-white/10 to-white/5 backdrop-blur-lg">
         <Icon size={40} className="text-teal-300 sm:w-12 sm:h-12 md:w-14 md:h-14 drop-shadow-lg" />
         <h2 className="text-xl sm:text-2xl font-bold text-white text-center drop-shadow-md">
           {title}
@@ -50,7 +50,7 @@ export default function Home() {
     <div className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center text-center px-4 py-16 sm:py-20 md:py-24 relative"
       style={{ backgroundImage: `url('/hero.png')` }} >
       {/* Enhanced Overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm"></div>
 
       <div className="relative z-10 w-full flex flex-col items-center">
         {/* Heading */}

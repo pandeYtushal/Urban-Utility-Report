@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import ReportForm from "./components/ReportForm";
-import ReportList from "./components/ReportList";
+import ReportsList from "./components/ReportList";   // ✅ FIXED IMPORT NAME
 import Profile from "./components/Profile";
 import EditProfile from "./components/EditProfile";
 import Login from "./pages/Login";
@@ -25,20 +25,20 @@ export default function App() {
       {user && <Navbar />}
 
       <Routes>
-        {/* Auth Routes */}
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-        <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" />} />
-
-        {/* Protected Routes */}
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/report" element={<ProtectedRoute><ReportForm /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><ReportList /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />}/>
+        <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" replace />}/>
+        <Route path="/" element={ <ProtectedRoute> <Home /> </ProtectedRoute>}/>
+        <Route path="/report" element={<ProtectedRoute><ReportForm /></ProtectedRoute>}/>
+        <Route path="/reports" element={ <ProtectedRoute> <ReportsList /> </ProtectedRoute>}/>
+        <Route path="/profile" element={ <ProtectedRoute><Profile /></ProtectedRoute>}/>
+        <Route path="/edit-profile"element={<ProtectedRoute><EditProfile /></ProtectedRoute>}/>
       </Routes>
-<Chatbot />
+
+
+      <Chatbot />
+
+      
       {user && <Footer />}
     </Router>
-    
   );
 }

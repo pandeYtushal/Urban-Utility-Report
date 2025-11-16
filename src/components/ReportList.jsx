@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "../Firebase";
+import { db } from "../../Firebase";
 import { MapPin } from "lucide-react";
 
 export default function ReportsList() {
@@ -66,6 +66,7 @@ export default function ReportsList() {
                 </p>
 
                 {/* Description */}
+
                 <p className="text-gray-400 text-sm line-clamp-3 mb-3">
                   {r.description}
                 </p>

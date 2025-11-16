@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,28 +9,41 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "👋 Hi there! I'm your UrbanReporter Assistant. How can I help you today?",
+      text: "👋 Hi! I'm your UrbanReporter AI. How can I help you today?",
     },
   ]);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const chatRef = useRef(null); // container ref
+  const lastMsgRef = useRef(null); // optional last message ref for smooth scroll
 
-  // 🔥 Smart keyword detection (open report page automatically)
   const detectIntent = (text) => {
     const keywords = ["report", "issue", "problem", "complaint"];
     return keywords.some((word) => text.toLowerCase().includes(word));
   };
 
+  // scroll to bottom whenever messages or loading changes
+  useEffect(() => {
+    // prefer smooth scroll to the last message if available
+    if (lastMsgRef.current) {
+      lastMsgRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
+    if (!chatRef.current) return;
+    // fallback: instant scroll
+    chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [messages, loading, isOpen]);
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", text: input }];
+    const userMsg = { role: "user", text: input };
+    const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
 
-    // 🧠 Check if user wants to report an issue
     if (detectIntent(input)) {
       setTimeout(() => {
         navigate("/report");
@@ -42,12 +56,11 @@ export default function Chatbot() {
           },
         ]);
         setLoading(false);
-      }, 800);
+      }, 600);
       return;
     }
 
     try {
-      // 🛰️ Connect to backend AI
       const res = await fetch("http://localhost:5000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,21 +68,21 @@ export default function Chatbot() {
       });
 
       const data = await res.json();
-      setMessages([
+      setMessages((prev) => [
         ...newMessages,
         { role: "assistant", text: data.reply || "⚠️ I couldn’t process that." },
       ]);
     } catch (error) {
-      setMessages([
+      setMessages((prev) => [
         ...newMessages,
         { role: "assistant", text: "⚠️ Error connecting to AI." },
       ]);
+      console.error("Chatbot fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Send on Enter key
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -79,71 +92,79 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* 💬 Floating Chat Button */}
+      {/* floating button */}
       {!isOpen && (
-        <button
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-linear-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-80"
+          className="fixed bottom-6 right-6 bg-linear-to-r from-teal-500 to-blue-500 text-white p-4 rounded-full shadow-xl z-50"
         >
-          <MessageCircle size={24} />
-        </button>
+          <MessageCircle size={26} />
+        </motion.button>
       )}
 
-      {/* 🪟 Chat Window */}
+      {/* chat window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 sm:w-96 bg-[rgba(24,24,27,0.95)] backdrop-blur-md border border-gray-700 text-gray-100 rounded-2xl shadow-2xl z-90 flex flex-col overflow-hidden animate-slide-up">
-          {/* Header */}
-          <div className="flex justify-between items-center px-4 py-3 border-b border-gray-700">
-            <h2 className="text-sm font-semibold text-teal-400">
-              UrbanReporter AI
-            </h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-white transition"
-            >
-              <X size={24} />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 30 }}
+          transition={{ duration: 0.22 }}
+          className="fixed bottom-6 right-6 w-80 sm:w-96 h-[500px] max-h-[80vh] bg-[#121212]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 z-50 flex flex-col overflow-hidden"
+        >
+          {/* header */}
+          <div className="flex justify-between items-center px-4 py-3 bg-[#1a1a1a] border-b border-white/10">
+            <h2 className="text-sm font-semibold text-teal-400">UrbanReporter AI</h2>
+            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white transition">
+              <X size={22} />
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`p-2 rounded-lg max-w-[85%] ${
-                  msg.role === "user"
-                    ? "bg-linear-to-r from-teal-600 to-blue-600 text-white self-end ml-auto"
-                    : "bg-gray-800/70 text-gray-100"
-                }`}
-              >
-                {msg.text}
-              </div>
-            ))}
+          {/* messages container */}
+          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            {messages.map((msg, i) => {
+              const isUser = msg.role === "user";
+              const isLast = i === messages.length - 1;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.12, delay: i * 0.02 }}
+                  ref={isLast ? lastMsgRef : null}
+                  className={`p-3 rounded-xl max-w-[85%] text-sm shadow-md backdrop-blur-md ${
+                    isUser ? "bg-linear-to-r from-teal-600 to-blue-600 text-white ml-auto" : "bg-white/10 text-gray-200"
+                  }`}
+                >
+                  {msg.text}
+                </motion.div>
+              );
+            })}
 
-            {loading && (
-              <div className="text-gray-400 text-xs italic">Thinking...</div>
-            )}
+            {loading && <div className="text-gray-400 text-xs italic">Typing...</div>}
           </div>
 
-          {/* Input */}
-          <div className="border-t border-gray-700 flex items-center px-3 py-2">
+          {/* input */}
+          <div className="flex items-center px-3 py-3 bg-[#1b1b1b] border-t border-white/10">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask me about reports..."
-              className="flex-1 bg-transparent outline-none text-sm text-white placeholder-gray-500"
+              className="flex-1 bg-transparent outline-none text-sm text-gray-100 placeholder-gray-500"
             />
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={handleSend}
               disabled={loading}
-              className="p-2 rounded-full hover:bg-gray-700 transition disabled:opacity-50"
+              className="p-2 rounded-full hover:bg-white/10 transition disabled:opacity-50"
             >
-              <Send size={16} />
-            </button>
+              <Send size={18} className="text-teal-400" />
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       )}
     </>
   );
