@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import ReportForm from "./components/ReportForm";
-import ReportsList from "./components/ReportList";   // ✅ FIXED IMPORT NAME
+import ReportsList from "./components/ReportList"; 
 import Profile from "./components/Profile";
 import EditProfile from "./components/EditProfile";
 import Login from "./pages/Login";
