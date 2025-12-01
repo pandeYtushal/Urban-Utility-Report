@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,29 +8,29 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "👋 Hi! I'm your UrbanReporter AI. How can I help you today?",
+      text: "Hi! I'm your UrbanReporter AI. How can I help you today?",
     },
   ]);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const chatRef = useRef(null); // container ref
-  const lastMsgRef = useRef(null); // optional last message ref for smooth scroll
+  const chatRef = useRef(null); 
+  const lastMsgRef = useRef(null);
 
   const detectIntent = (text) => {
     const keywords = ["report", "issue", "problem", "complaint"];
     return keywords.some((word) => text.toLowerCase().includes(word));
   };
 
-  // scroll to bottom whenever messages or loading changes
+
   useEffect(() => {
-    // prefer smooth scroll to the last message if available
+
     if (lastMsgRef.current) {
       lastMsgRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
       return;
     }
     if (!chatRef.current) return;
-    // fallback: instant scroll
+    
     chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages, loading, isOpen]);
 
@@ -52,7 +51,7 @@ export default function Chatbot() {
           {
             role: "assistant",
             text:
-              "🚀 Taking you to the Report page where you can log your issue. Please provide location and description there.",
+              "Taking you to the Report page where you can log your issue. Please provide location and description there.",
           },
         ]);
         setLoading(false);
@@ -61,21 +60,22 @@ export default function Chatbot() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
+      const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: newMessages }),
+  });
+
 
       const data = await res.json();
       setMessages((prev) => [
         ...newMessages,
-        { role: "assistant", text: data.reply || "⚠️ I couldn’t process that." },
+        { role: "assistant", text: data.reply || "I couldn’t process that." },
       ]);
     } catch (error) {
       setMessages((prev) => [
         ...newMessages,
-        { role: "assistant", text: "⚠️ Error connecting to AI." },
+        { role: "assistant", text: "Error connecting to AI." },
       ]);
       console.error("Chatbot fetch error:", error);
     } finally {
@@ -98,7 +98,7 @@ export default function Chatbot() {
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-linear-to-r from-teal-500 to-blue-500 text-white p-4 rounded-full shadow-xl z-50"
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-teal-500 to-blue-500 text-white p-4 rounded-full shadow-xl z-50"
         >
           <MessageCircle size={26} />
         </motion.button>
@@ -134,7 +134,7 @@ export default function Chatbot() {
                   transition={{ duration: 0.12, delay: i * 0.02 }}
                   ref={isLast ? lastMsgRef : null}
                   className={`p-3 rounded-xl max-w-[85%] text-sm shadow-md backdrop-blur-md ${
-                    isUser ? "bg-linear-to-r from-teal-600 to-blue-600 text-white ml-auto" : "bg-white/10 text-gray-200"
+                    isUser ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white ml-auto" : "bg-white/10 text-gray-200"
                   }`}
                 >
                   {msg.text}
