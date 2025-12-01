@@ -21,21 +21,20 @@ export default function ReportsList() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat relative flex flex-col items-center px-4 py-20"
-      style={{ backgroundImage: `url('/hero.png')` }}
-    >
+      style={{ backgroundImage: `url('/hero.png')` }}>
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-[rgba(19,19,19,0.9)] backdrop-blur-md z-0"></div>
 
       <div className="relative z-10 w-full max-w-7xl">
         {/* Page Heading */}
         <h2 className="text-3xl sm:text-4xl font-bold text-teal-400 mb-10 text-center drop-shadow-lg">
-          Reported Issues 📋
+          Reported Issues
         </h2>
 
         {/* No Reports Found */}
         {reports.length === 0 ? (
           <div className="text-center text-gray-400 text-lg mt-16">
-            🚫 No reports found. Be the first to report an issue!
+             No reports found. Be the first to report an issue!
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -76,15 +75,15 @@ export default function ReportsList() {
                   <span>
                     {r.createdAt?.toDate?.().toLocaleString?.() || "Pending..."}
                   </span>
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium ${
-                      r.status === "Pending"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-green-500/20 text-green-400"
-                    }`}
-                  >
-                    {r.status || "Pending"}
-                  </span>
+               <span
+                 className={`px-2 py-1 rounded-md text-xs font-medium ${
+                   r.status === "Pending"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                     : "bg-green-500/20 text-green-400" }`}>
+                   {r.status || "Pending"}
+                   {r.status === "Resolved" && (
+                     <span className="ml-1 text-green-400 font-semibold">(Resolved)</span>
+                   )}</span>
                 </div>
               </div>
             ))}
