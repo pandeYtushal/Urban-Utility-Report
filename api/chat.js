@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -24,12 +23,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Messages array is required" });
     }
 
+
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    const envKeys = Object.keys(process.env).filter(key => key.includes('GROQ'));
+    
+    console.log('Environment check:', {
+      hasKey: !!GROQ_API_KEY,
+      keyLength: GROQ_API_KEY?.length || 0,
+      envKeysFound: envKeys,
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV
+    });
 
     if (!GROQ_API_KEY) {
       console.error("Missing GROQ_API_KEY in environment variables");
+      console.error("Available env vars:", Object.keys(process.env).slice(0, 10));
       return res.status(500).json({ 
-        reply: "Server configuration error. Please contact support." 
+        reply: "Server configuration error. Please contact support.",
+        debug: process.env.VERCEL ? "Running on Vercel" : "Not on Vercel"
       });
     }
 

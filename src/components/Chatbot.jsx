@@ -61,23 +61,36 @@ export default function Chatbot() {
 
     try {
       const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: newMessages }),
-  });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
 
+      if (!res.ok) {
+        console.error("API response not OK:", res.status, res.statusText);
+        const errorData = await res.json().catch(() => ({}));
+        setMessages((prev) => [
+          ...newMessages,
+          { 
+            role: "assistant", 
+            text: errorData.reply || `Error: ${res.status} ${res.statusText}` 
+          },
+        ]);
+        return;
+      }
 
       const data = await res.json();
+      console.log("API response:", data);
       setMessages((prev) => [
         ...newMessages,
-        { role: "assistant", text: data.reply || "I couldn’t process that." },
+        { role: "assistant", text: data.reply || data.error || "I couldn't process that." },
       ]);
     } catch (error) {
+      console.error("Chatbot fetch error:", error);
       setMessages((prev) => [
         ...newMessages,
-        { role: "assistant", text: "Error connecting to AI." },
+        { role: "assistant", text: `Error connecting to AI: ${error.message}` },
       ]);
-      console.error("Chatbot fetch error:", error);
     } finally {
       setLoading(false);
     }
